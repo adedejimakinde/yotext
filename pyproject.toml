@@ -8,9 +8,26 @@ version = "0.1.0"
 description = "Orthographic normalization and diacritic handling for Yorùbá text"
 requires-python = ">=3.9"
 dependencies = []
+authors = [{name = "Adedeji Makinde", email = "makindeadedeji5@gmail.com"}]
+readme = "README.md"
+license = "MIT"
+keywords = ["yoruba", "nlp", "unicode", "diacritics", "text-normalization", "african-languages", "low-resource"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Text Processing :: Linguistic",
+]
 
 [project.optional-dependencies]
 dev = ["pytest"]
+
+[project.urls]
+Homepage = "https://github.com/adedejimakinde/yotext"
+Issues = "https://github.com/adedejimakinde/yotext/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/yotext"]
