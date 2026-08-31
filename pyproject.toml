@@ -1,0 +1,17 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "yotext"
+version = "0.1.0"
+description = "Orthographic normalization and diacritic handling for Yorùbá text"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/yotext"]
+artifacts = ["src/yotext/data/*"]
