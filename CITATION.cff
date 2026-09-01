@@ -4,8 +4,8 @@ title: "yotext: Orthographic normalization and diacritic handling for Yorùbá t
 authors:
   - family-names: "Makinde"
     given-names: "Adedeji"
-version: 0.1.0
-date-released: 2026-08-31
+version: 0.2.0
+date-released: 2026-09-01
 license: MIT
 repository-code: "https://github.com/adedejimakinde/yotext"
 url: "https://pypi.org/project/yotext/"
