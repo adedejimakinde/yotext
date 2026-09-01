@@ -84,3 +84,37 @@ def tone_pattern(text: str) -> str:
             else:
                 pattern.append("M")
     return "".join(pattern)
+
+
+def diacritic_coverage(text: str) -> float:
+    """Compute the fraction of vowels that carry at least one combining mark.
+
+    Walks the decomposed text; for each base character, the combining marks
+    that immediately follow it are inspected. Non-vowel bases are skipped.
+    A vowel counts as marked if it has one or more combining marks
+    following it, tone marks and underdots alike.
+
+    Args:
+        text: The input text.
+
+    Returns:
+        The number of marked vowels divided by the total number of vowels,
+        or 0.0 if the text has no vowels.
+    """
+    decomposed = standardize(text, compose=False)
+    total = 0
+    marked = 0
+    i = 0
+    n = len(decomposed)
+    while i < n:
+        base = decomposed[i]
+        i += 1
+        marks = []
+        while i < n and unicodedata.combining(decomposed[i]) != 0:
+            marks.append(decomposed[i])
+            i += 1
+        if base in VOWELS:
+            total += 1
+            if marks:
+                marked += 1
+    return marked / total if total else 0.0

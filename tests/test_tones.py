@@ -1,6 +1,11 @@
 """Tests for yotext.tones."""
 
-from yotext.tones import strip_tones, strip_diacritics, tone_pattern
+from yotext.tones import (
+    strip_tones,
+    strip_diacritics,
+    tone_pattern,
+    diacritic_coverage,
+)
 
 
 def test_strip_tones_removes_acute():
@@ -55,3 +60,18 @@ def test_empty_string():
     assert strip_tones("") == ""
     assert strip_diacritics("") == ""
     assert tone_pattern("") == ""
+    assert diacritic_coverage("") == 0.0
+
+
+def test_diacritic_coverage_fully_marked():
+    assert diacritic_coverage("\u1eb9\u0300k\u1ecd\u0301") == 1.0
+    assert diacritic_coverage("b\u00e0b\u00e1") == 1.0
+
+
+def test_diacritic_coverage_unmarked():
+    assert diacritic_coverage("eko") == 0.0
+    assert diacritic_coverage("plain") == 0.0
+
+
+def test_diacritic_coverage_mixed():
+    assert diacritic_coverage("b\u00e0ba") == 0.5
