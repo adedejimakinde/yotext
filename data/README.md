@@ -1,3 +1,23 @@
+---
+license: cc-by-sa-4.0
+language:
+  - yo
+task_categories:
+  - text-generation
+tags:
+  - yoruba
+  - unicode
+  - text-normalization
+  - diacritics
+  - african-languages
+  - low-resource
+size_categories:
+  - 10K<n<100K
+configs:
+  - config_name: default
+    data_files: normalization_pairs.jsonl
+---
+
 # Normalization pairs dataset
 
 ## What this is
