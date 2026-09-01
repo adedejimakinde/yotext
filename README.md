@@ -20,6 +20,20 @@ Most text preprocessing code lumps both of these under the single label "diacrit
 pip install yotext
 ```
 
+## Quickstart
+
+Here is every function in one pass.
+
+```python
+from yotext import standardize, strip_tones, strip_diacritics, tone_pattern, restore
+
+standardize("e\u0300\u0329ko\u0301\u0331")  # 'ẹ̀kọ́'
+strip_tones("ẹ̀kọ́")                         # 'ẹkọ'
+strip_diacritics("ẹ̀kọ́")                     # 'eko'
+tone_pattern("bàbá")                         # 'LH'
+restore("owo mi wa nile")                    # 'ọwọ́ mi wà nílé'
+```
+
 ## Usage
 
 ```python
@@ -77,6 +91,20 @@ On held-out Wikipedia articles, restore() gets 87.3% of words right. On the ambi
 The evaluation set only includes held-out articles with diacritic coverage above 0.75. Wikipedia articles with lower coverage are themselves incompletely diacritized, so they cannot serve as gold data. I would rather report a number on a smaller, clean evaluation set than a number that is quietly measuring against wrong answers.
 
 These numbers describe Wikipedia-style prose. Accuracy on social media and conversational text will be lower, since that kind of writing looks nothing like the lexicon's source. Proper nouns are the main source of out-of-vocabulary failures, since names do not repeat often enough in the training text to end up in the lexicon. A neural restorer is the obvious next step, and the lexicon-based version here is meant as a solid, inspectable baseline in the meantime.
+
+## Citation
+
+If you use this library in research, please cite it.
+
+```bibtex
+@software{makinde_yotext_2026,
+  author  = {Makinde, Adedeji},
+  title   = {yotext: Orthographic normalization and diacritic handling for Yor\`ub\'a text},
+  year    = {2026},
+  version = {0.2.0},
+  url     = {https://github.com/adedejimakinde/yotext}
+}
+```
 
 ## License
 
