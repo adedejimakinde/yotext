@@ -92,6 +92,10 @@ The evaluation set only includes held-out articles with diacritic coverage above
 
 These numbers describe Wikipedia-style prose. Accuracy on social media and conversational text will be lower, since that kind of writing looks nothing like the lexicon's source. Proper nouns are the main source of out-of-vocabulary failures, since names do not repeat often enough in the training text to end up in the lexicon. A neural restorer is the obvious next step, and the lexicon-based version here is meant as a solid, inspectable baseline in the meantime.
 
+## Dataset
+
+I built a companion dataset of 24,475 Yorùbá text pairs for testing normalization code, each a corrupted form alongside its canonical form, labelled by corruption type. It covers wrong underdot codepoints, non-canonical mark ordering, invisible characters, and diacritic stripping. It is on Hugging Face at https://huggingface.co/datasets/adedejimakinde/yoruba-normalization-pairs and licensed CC BY-SA 4.0, since the text comes from Yorùbá Wikipedia.
+
 ## Citation
 
 If you use this library in research, please cite it.
