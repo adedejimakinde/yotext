@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "yotext: Orthographic normalization and diacritic handling for Yorùbá text"
+authors:
+  - family-names: "Makinde"
+    given-names: "Adedeji"
+version: 0.1.0
+date-released: 2026-08-31
+license: MIT
+repository-code: "https://github.com/adedejimakinde/yotext"
+url: "https://pypi.org/project/yotext/"
+keywords:
+  - yoruba
+  - natural language processing
+  - unicode
+  - text normalization
+  - diacritics
+  - low-resource languages
+type: software
