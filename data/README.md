@@ -24,6 +24,10 @@ configs:
 
 24,475 pairs of Yorùbá text, each a corrupted form next to its canonical form, labelled by corruption type. I built it for testing orthographic normalization code.
 
+## The library
+
+This dataset was built alongside yotext, a Python library for Yorùbá orthographic normalization and diacritic restoration. The library is on PyPI at https://pypi.org/project/yotext/ and the source is at https://github.com/adedejimakinde/yotext. The corruption generator that produced this dataset is in that repository under tools/corrupt.py, so the dataset is fully reproducible.
+
 ## Format
 
 JSON Lines, UTF-8. Each line is one object with four fields: raw, canonical, issue, source.
