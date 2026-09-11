@@ -9,7 +9,7 @@ from .tones import strip_tones, strip_diacritics, tone_pattern, diacritic_covera
 from .validate import validate, Report
 from .variants import variants, inconsistent
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 __all__ = [
     "standardize",
     "strip_tones",

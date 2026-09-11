@@ -112,7 +112,7 @@ https://huggingface.co/datasets/adedejimakinde/yoruba-normalization-pairs
   author  = {Makinde, Adedeji},
   title   = {yotext: Orthographic normalization and diacritic handling for Yorùbá text},
   year    = {2026},
-  version = {0.3.0},
+  version = {0.4.0},
   url     = {https://github.com/adedejimakinde/yotext}
 }
 ```
