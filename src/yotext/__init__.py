@@ -7,6 +7,7 @@ diacritic handling for Yorùbá orthography.
 from .standardize import standardize
 from .tones import strip_tones, strip_diacritics, tone_pattern, diacritic_coverage
 from .validate import validate, Report
+from .variants import variants, inconsistent
 
 __version__ = "0.2.0"
 __all__ = [
@@ -18,6 +19,8 @@ __all__ = [
     "restore",
     "validate",
     "Report",
+    "variants",
+    "inconsistent",
     "__version__",
 ]
 
