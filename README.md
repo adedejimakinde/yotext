@@ -2,21 +2,18 @@
 
 Orthographic normalization and diacritic handling for Yorùbá text. Zero runtime dependencies. Requires Python 3.9 or newer.
 
-PyPI: https://pypi.org/project/yotext/  
-Source: https://github.com/adedejimakinde/yotext  
-Dataset: https://huggingface.co/datasets/adedejimakinde/yoruba-normalization-pairs
+- PyPI: https://pypi.org/project/yotext/
+- Source: https://github.com/adedejimakinde/yotext
+- Dataset: https://huggingface.co/datasets/adedejimakinde/yoruba-normalization-pairs
+- Web demo: https://yotext-demo.onrender.com/
 
-## Why this exists
+## Why I built this
 
-Yorùbá text in circulation is encoded inconsistently. The underdot that marks ẹ, ọ, and ṣ shows up as U+0323, U+0329, U+0331, or U+032D depending on the keyboard and the era it was typed on. Combining marks often arrive out of canonical order too. The same word ends up as several different byte sequences that look identical on screen and compare unequal in code. `standardize()` folds all of that into one canonical form.
+I had just finished the experiments for a paper comparing zero-shot prompting against fine-tuned models on Yorùbá sentiment analysis. Part of that work involved stripping diacritics from the text. Writing that preprocessing, I kept hitting the same problem in every tool I looked at. They treated tone marks and the underdot in ẹ, ọ, ṣ as one category called "diacritics" and removed both together.
 
-## Tone marks and underdots are different things
+They are not the same thing. The underdot changes the word. ẹ and e are different letters. Tone marks sit on top of a vowel and do not change which word it is.
 
-This is the part that matters most. The underdot in ẹ, ọ, and ṣ is segmental. ẹ and e are separate phonemes, and removing the underdot turns one word into a different word. Tone marks, the acute in á and the grave in à, are suprasegmental. They mark pitch on top of a vowel, and they do not change which phoneme the vowel is.
-
-Most text preprocessing code lumps both of these under the single label "diacritics" and strips them together. That conflates two different linguistic categories, and it produces wrong output for any task that depends on the ẹ/e or ọ/o distinction.
-
-`strip_tones()` removes tone marks and keeps the underdot. `strip_diacritics()` removes both. I kept both functions because they answer different questions, and code that only offers one of them is answering the wrong question at least some of the time.
+The encoding underneath turned out to be its own problem. The same word shows up as four different byte sequences depending on which keyboard typed it, and none of them look different on screen.
 
 ## Install
 
@@ -25,8 +22,6 @@ pip install yotext
 ```
 
 ## Quickstart
-
-Here is every function in one pass.
 
 ```python
 from yotext import standardize, strip_tones, strip_diacritics, tone_pattern, restore, validate, inconsistent
@@ -37,129 +32,95 @@ strip_diacritics("ẹ̀kọ́")                     # 'eko'
 tone_pattern("bàbá")                         # 'LH'
 restore("owo mi wa nile")                    # 'ọwọ́ mi wà nílé'
 validate("ẹ̀kọ́").is_canonical               # True
-inconsistent(["ẹ ni", "e ni"])               # {'e': {'ẹ': 1, 'e': 1}}
+inconsistent(["ni ní ni"])                   # {'ni': {'ni': 2, 'ní': 1}}
 ```
 
 ## Command line
 
-Installing yotext puts a `yotext` command on your path.
-
 ```
-yotext normalize file.txt                   # standardize the text and write it to stdout
-yotext validate file.txt                    # report what is wrong with the text
-yotext variants corpus.txt --min-count 2    # list bare forms spelled more than one way
-yotext restore file.txt                     # predict diacritics for undiacritized input
+yotext normalize file.txt
+yotext validate file.txt
+yotext variants corpus.txt --min-count 2
+yotext restore file.txt
 ```
 
-Every command reads stdin when you give it no path or pass `-` as the path, so it drops into a pipeline. `normalize` takes `--strip-tones` or `--strip-diacritics` to apply either function after standardizing. `validate` takes `--json` for machine-readable output.
+Every command reads stdin when no path is given or the path is `-`. `validate` takes `--json`. `normalize` takes `--strip-tones` or `--strip-diacritics`.
+
+## Tone marks and underdots
+
+`strip_tones()` removes tone marks and keeps the underdot. `strip_diacritics()` removes both. Both functions are here because they answer different questions.
 
 ## Checking a corpus
 
-Two functions tell you whether a corpus is clean before you spend time on it.
-
-`validate()` reports what is wrong with text as it stands. It leaves the text alone, since the point is to tell you what is in there. It counts non-canonical underdot codepoints, combining marks out of canonical order, invisible characters, and smart punctuation. It also reports diacritic coverage.
+`validate(text)` reports what is wrong with text as it stands, without changing it.
 
 ```python
 from yotext import validate
-
-report = validate("e\u0301\u0329 \u200b\u2018ile\u2019")
-print(report.summary())
-# length: 10 characters
-# diacritic coverage: 0.33
-# non-canonical underdots: {'U+0329': 1}
-# misordered marks: 1
-# invisible characters: {'U+200B': 1}
-# smart punctuation: 2
-# canonical: no
+print(validate("e\u0301\u0329k\u1ecd\u200b").summary())
 ```
 
-`inconsistent()` takes a corpus and returns the bare forms that appear with more than one diacritization.
-
-```python
-from yotext import inconsistent
-
-inconsistent(["àwọn ilé", "awon ilé", "àwon ilé"])
-# {'awon': {'àwọn': 1, 'awon': 1, 'àwon': 1}}
+```
+length: 6 characters
+diacritic coverage: 1.00
+non-canonical underdots: {'U+0329': 1}
+misordered marks: 1
+invisible characters: {'U+200B': 1}
+smart punctuation: 0
+canonical: no
 ```
 
-ilé is spelled the same way every time, so it does not come back. Running this over a hundred articles from Yorùbá Wikipedia returns 2,225 such forms, and the plural marker àwọn alone appears in thirteen spellings. That is the direct evidence a corpus is orthographically inconsistent rather than an assertion about it.
-
-## Usage
-
-```python
-from yotext import standardize, strip_tones, strip_diacritics, tone_pattern
-
-# Messy input: wrong underdot codepoint (U+0329 instead of U+0323)
-# and a tone mark placed before the underdot instead of after.
-messy = "e\u0300\u0329ko\u0301\u0331"
-standardize(messy)
-# 'ẹ̀kọ́'
-
-strip_tones("ẹ̀kọ́")
-# 'ẹkọ'  tone dropped, underdot kept, ẹ and e stay different words
-
-strip_diacritics("ẹ̀kọ́")
-# 'eko'  fully undiacritized, the baseline used in ablation experiments
-
-tone_pattern("bàbá")
-# 'LH'  useful for checking tone distribution across a corpus
-```
-
-Two strings can look identical and still compare unequal, if one uses a precomposed vowel and the other uses a decomposed one with a non-canonical underdot codepoint.
-
-```python
-s1 = "\u1eb9"       # precomposed ẹ
-s2 = "e\u0329"      # decomposed, non-canonical underdot
-s1 == s2                       # False
-standardize(s1) == standardize(s2)  # True
-```
-
-Running `standardize()` on a corpus before deduplicating or indexing it collapses these variants so equal words compare equal.
-
-## What it guarantees
-
-`standardize()` is idempotent. Running it twice gives the same result as running it once.
-
-`strip_diacritics(s)` equals `strip_diacritics(strip_tones(s))` for any input. Removing tone first and then removing what remains lands on the same undiacritized form as removing everything at once.
-
-Combining marks always come out in canonical order, combining class 220 before combining class 230.
+`inconsistent(texts)` returns the bare forms that appear with more than one diacritization. Running it over a small sample of Yorùbá Wikipedia surfaces over a thousand such forms.
 
 ## Diacritic restoration
 
-`restore()` predicts diacritics for plain, undiacritized Yorùbá input. It looks up each word in a lexicon built from Yorùbá Wikipedia, and when a bare form has more than one diacritized candidate, it chooses between them with a bigram-scored Viterbi decode over the whole sentence, not by looking at the word in isolation.
+`restore()` predicts diacritics for undiacritized input. It looks up each word in a lexicon built from Yorùbá Wikipedia, and chooses between candidates with a bigram-scored Viterbi decode over the sentence.
 
-```python
-from yotext import restore
+On held-out Wikipedia articles it gets 87.3% of words right, and 89.4% on the ambiguous words where the lexicon offers more than one candidate. 2.5% of tokens are out of vocabulary and pass through unchanged.
 
-restore("owo mi wa nile")
-# predicts tone marks and underdots per token, choosing between
-# candidates using the surrounding words when a bare form is ambiguous
+The evaluation set only includes held-out articles with diacritic coverage above 0.75. Articles below that are themselves incompletely diacritized and cannot serve as gold data.
+
+Accuracy on social media and conversational text will be lower. Proper nouns are the main source of out-of-vocabulary failures.
+
+## Word documents
+
+```
+pip install yotext[docx]
+yotext validate document.docx
+yotext normalize document.docx --output clean.docx
 ```
 
-On held-out Wikipedia articles, restore() gets 87.3% of words right. On the ambiguous words, the ones where the lexicon offers more than one candidate and the model actually has to choose, accuracy is 89.4%. 2.5% of tokens are out of vocabulary and pass through undiacritized.
+Character and paragraph formatting survive. Restoration on docx is not supported, because words can be split across formatting runs.
 
-The evaluation set only includes held-out articles with diacritic coverage above 0.75. Wikipedia articles with lower coverage are themselves incompletely diacritized, so they cannot serve as gold data. I would rather report a number on a smaller, clean evaluation set than a number that is quietly measuring against wrong answers.
+## What it guarantees
 
-These numbers describe Wikipedia-style prose. Accuracy on social media and conversational text will be lower, since that kind of writing looks nothing like the lexicon's source. Proper nouns are the main source of out-of-vocabulary failures, since names do not repeat often enough in the training text to end up in the lexicon. A neural restorer is the obvious next step, and the lexicon-based version here is meant as a solid, inspectable baseline in the meantime.
+`standardize()` is idempotent. `strip_diacritics(s)` equals `strip_diacritics(strip_tones(s))` for any input. Combining marks always come out in canonical order, combining class 220 before class 230.
 
 ## Dataset
 
-I built a companion dataset of 24,475 Yorùbá text pairs for testing normalization code, each a corrupted form alongside its canonical form, labelled by corruption type. It covers wrong underdot codepoints, non-canonical mark ordering, invisible characters, and diacritic stripping. It is on Hugging Face at https://huggingface.co/datasets/adedejimakinde/yoruba-normalization-pairs and licensed CC BY-SA 4.0, since the text comes from Yorùbá Wikipedia.
+24,475 Yorùbá text pairs for testing normalization code, each a corrupted form alongside its canonical form, labelled by corruption type. CC BY-SA 4.0, since the text comes from Yorùbá Wikipedia.
+
+https://huggingface.co/datasets/adedejimakinde/yoruba-normalization-pairs
+
+## Related work
+
+Ìrànlọ́wọ́ (https://pypi.org/project/iranlowo/) is an earlier utility library for Yorùbá text, with tools for normalization, corpus analysis, and neural diacritic restoration.
 
 ## Citation
-
-If you use this library in research, please cite it.
 
 ```bibtex
 @software{makinde_yotext_2026,
   author  = {Makinde, Adedeji},
-  title   = {yotext: Orthographic normalization and diacritic handling for Yor\`ub\'a text},
+  title   = {yotext: Orthographic normalization and diacritic handling for Yorùbá text},
   year    = {2026},
   version = {0.3.0},
   url     = {https://github.com/adedejimakinde/yotext}
 }
 ```
 
+## Author
+
+Adedeji Makinde. I build tools for African language NLP.
+
 ## License
 
-MIT.
+The code is MIT. The lexicon in `src/yotext/data/` is derived from Yorùbá Wikipedia and available under CC BY-SA 4.0.
