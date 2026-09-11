@@ -25,6 +25,9 @@ classifiers = [
 [project.optional-dependencies]
 dev = ["pytest"]
 
+[project.scripts]
+yotext = "yotext.cli:main"
+
 [project.urls]
 Homepage = "https://github.com/adedejimakinde/yotext"
 Issues = "https://github.com/adedejimakinde/yotext/issues"
