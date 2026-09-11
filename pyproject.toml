@@ -24,6 +24,7 @@ classifiers = [
 
 [project.optional-dependencies]
 dev = ["pytest"]
+docx = ["python-docx>=1.1"]
 
 [project.scripts]
 yotext = "yotext.cli:main"

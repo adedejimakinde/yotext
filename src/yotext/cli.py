@@ -6,10 +6,15 @@ import sys
 from pathlib import Path
 
 from . import restore
+from .docx import read_docx, process_docx
 from .standardize import standardize
 from .tones import strip_tones, strip_diacritics
 from .validate import validate
 from .variants import variants, inconsistent
+
+
+def _is_docx(path):
+    return path not in (None, "-") and Path(path).suffix.lower() == ".docx"
 
 
 def _read_input(path):
@@ -31,6 +36,9 @@ def _build_parser():
         "normalize", help="Standardize text and write it to stdout."
     )
     normalize_parser.add_argument("path", nargs="?", default=None)
+    normalize_parser.add_argument(
+        "--output", default=None, help="Write to this path instead of stdout. Required for .docx input."
+    )
     exclusive = normalize_parser.add_mutually_exclusive_group()
     exclusive.add_argument("--strip-tones", action="store_true")
     exclusive.add_argument("--strip-diacritics", action="store_true")
@@ -61,18 +69,34 @@ def _build_parser():
 
 
 def _cmd_normalize(args) -> int:
-    text = _read_input(args.path)
-    result = standardize(text)
-    if args.strip_tones:
-        result = strip_tones(result)
-    elif args.strip_diacritics:
-        result = strip_diacritics(result)
-    sys.stdout.write(result)
+    def transform(text):
+        result = standardize(text)
+        if args.strip_tones:
+            result = strip_tones(result)
+        elif args.strip_diacritics:
+            result = strip_diacritics(result)
+        return result
+
+    if _is_docx(args.path):
+        if args.output is None:
+            print(
+                "yotext: normalizing a .docx file writes a new document, so it needs --output PATH",
+                file=sys.stderr,
+            )
+            return 1
+        process_docx(args.path, args.output, transform)
+        return 0
+
+    result = transform(_read_input(args.path))
+    if args.output is None:
+        sys.stdout.write(result)
+    else:
+        Path(args.output).write_text(result, encoding="utf-8")
     return 0
 
 
 def _cmd_validate(args) -> int:
-    text = _read_input(args.path)
+    text = read_docx(args.path) if _is_docx(args.path) else _read_input(args.path)
     report = validate(text)
     if args.json:
         payload = {
@@ -102,6 +126,15 @@ def _cmd_variants(args) -> int:
 
 
 def _cmd_restore(args) -> int:
+    if _is_docx(args.path):
+        print(
+            "yotext: restore does not support .docx files yet. A single word can be "
+            "split across several formatting runs, so restoring run by run would "
+            "predict diacritics from fragments instead of whole words. Extract the "
+            "text first and restore that.",
+            file=sys.stderr,
+        )
+        return 1
     text = _read_input(args.path)
     sys.stdout.write(restore(text))
     return 0
@@ -118,6 +151,9 @@ def main(argv=None) -> int:
         return args.func(args)
     except FileNotFoundError as exc:
         print(f"yotext: {exc.filename}: No such file or directory", file=sys.stderr)
+        return 1
+    except ImportError as exc:
+        print(f"yotext: {exc}", file=sys.stderr)
         return 1
 
 
