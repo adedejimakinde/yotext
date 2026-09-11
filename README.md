@@ -2,6 +2,10 @@
 
 Orthographic normalization and diacritic handling for Yorùbá text. Zero runtime dependencies. Requires Python 3.9 or newer.
 
+PyPI: https://pypi.org/project/yotext/  
+Source: https://github.com/adedejimakinde/yotext  
+Dataset: https://huggingface.co/datasets/adedejimakinde/yoruba-normalization-pairs
+
 ## Why this exists
 
 Yorùbá text in circulation is encoded inconsistently. The underdot that marks ẹ, ọ, and ṣ shows up as U+0323, U+0329, U+0331, or U+032D depending on the keyboard and the era it was typed on. Combining marks often arrive out of canonical order too. The same word ends up as several different byte sequences that look identical on screen and compare unequal in code. `standardize()` folds all of that into one canonical form.
@@ -25,14 +29,60 @@ pip install yotext
 Here is every function in one pass.
 
 ```python
-from yotext import standardize, strip_tones, strip_diacritics, tone_pattern, restore
+from yotext import standardize, strip_tones, strip_diacritics, tone_pattern, restore, validate, inconsistent
 
 standardize("e\u0300\u0329ko\u0301\u0331")  # 'ẹ̀kọ́'
 strip_tones("ẹ̀kọ́")                         # 'ẹkọ'
 strip_diacritics("ẹ̀kọ́")                     # 'eko'
 tone_pattern("bàbá")                         # 'LH'
 restore("owo mi wa nile")                    # 'ọwọ́ mi wà nílé'
+validate("ẹ̀kọ́").is_canonical               # True
+inconsistent(["ẹ ni", "e ni"])               # {'e': {'ẹ': 1, 'e': 1}}
 ```
+
+## Command line
+
+Installing yotext puts a `yotext` command on your path.
+
+```
+yotext normalize file.txt                   # standardize the text and write it to stdout
+yotext validate file.txt                    # report what is wrong with the text
+yotext variants corpus.txt --min-count 2    # list bare forms spelled more than one way
+yotext restore file.txt                     # predict diacritics for undiacritized input
+```
+
+Every command reads stdin when you give it no path or pass `-` as the path, so it drops into a pipeline. `normalize` takes `--strip-tones` or `--strip-diacritics` to apply either function after standardizing. `validate` takes `--json` for machine-readable output.
+
+## Checking a corpus
+
+Two functions tell you whether a corpus is clean before you spend time on it.
+
+`validate()` reports what is wrong with text as it stands. It leaves the text alone, since the point is to tell you what is in there. It counts non-canonical underdot codepoints, combining marks out of canonical order, invisible characters, and smart punctuation. It also reports diacritic coverage.
+
+```python
+from yotext import validate
+
+report = validate("e\u0301\u0329 \u200b\u2018ile\u2019")
+print(report.summary())
+# length: 10 characters
+# diacritic coverage: 0.33
+# non-canonical underdots: {'U+0329': 1}
+# misordered marks: 1
+# invisible characters: {'U+200B': 1}
+# smart punctuation: 2
+# canonical: no
+```
+
+`inconsistent()` takes a corpus and returns the bare forms that appear with more than one diacritization.
+
+```python
+from yotext import inconsistent
+
+inconsistent(["àwọn ilé", "awon ilé", "àwon ilé"])
+# {'awon': {'àwọn': 1, 'awon': 1, 'àwon': 1}}
+```
+
+ilé is spelled the same way every time, so it does not come back. Running this over a hundred articles from Yorùbá Wikipedia returns 2,225 such forms, and the plural marker àwọn alone appears in thirteen spellings. That is the direct evidence a corpus is orthographically inconsistent rather than an assertion about it.
 
 ## Usage
 
@@ -105,7 +155,7 @@ If you use this library in research, please cite it.
   author  = {Makinde, Adedeji},
   title   = {yotext: Orthographic normalization and diacritic handling for Yor\`ub\'a text},
   year    = {2026},
-  version = {0.2.0},
+  version = {0.3.0},
   url     = {https://github.com/adedejimakinde/yotext}
 }
 ```

@@ -26,7 +26,7 @@ configs:
 
 ## The library
 
-This dataset was built alongside yotext, a Python library for Yorùbá orthographic normalization and diacritic restoration. The library is on PyPI at https://pypi.org/project/yotext/ and the source is at https://github.com/adedejimakinde/yotext. The corruption generator that produced this dataset is in that repository under tools/corrupt.py, so the dataset is fully reproducible.
+This dataset was built alongside yotext, a Python library for Yorùbá orthographic normalization and diacritic restoration. The library is on PyPI at https://pypi.org/project/yotext/ and the source is at https://github.com/adedejimakinde/yotext. The dataset itself is hosted at https://huggingface.co/datasets/adedejimakinde/yoruba-normalization-pairs. The corruption generator that produced this dataset is in that repository under tools/corrupt.py, so the dataset is fully reproducible.
 
 ## Format
 
